@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ru" style="background:#000;color-scheme:dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="color-scheme" content="dark">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Поиск</title>
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        html{background:#000}*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+        body{background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro','Segoe UI',system-ui,sans-serif;font-size:16px;line-height:1;min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px;-webkit-font-smoothing:antialiased}
+        .container{width:100%;max-width:700px;display:flex;flex-direction:column;gap:10px}
+        .tabs{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none}
+        .proxy-counter{font-size:11px;color:rgba(255,255,255,0.2);padding:0 2px;user-select:none;text-decoration:none;transition:color .2s}
+        .proxy-counter:hover{color:rgba(255,255,255,0.4)}.tabs::-webkit-scrollbar{display:none}
+        .tab{height:39px;border-radius:70px;background:#141414;border:1px solid rgba(255,255,255,0.1);color:#fff;font-size:16px;font-family:inherit;padding:0 20px;cursor:pointer;transition:background .2s,border-color .2s;display:flex;align-items:center;justify-content:center;white-space:nowrap;flex-shrink:0;user-select:none;outline:none}
+        .tab:hover{background:#212121}.tab.active{background:#474747}.tab.active:hover{background:#474747}
+        .tab--colored{background:rgba(var(--cr),var(--cg),var(--cb),0.13);border-color:rgba(var(--cr),var(--cg),var(--cb),0.18)}
+        .tab--colored:hover{background:rgba(var(--cr),var(--cg),var(--cb),0.18)}
+        .tab--colored.active{background:rgba(var(--cr),var(--cg),var(--cb),0.2);border-color:rgba(var(--cr),var(--cg),var(--cb),0.4)}
+        .tab--colored.active:hover{background:rgba(var(--cr),var(--cg),var(--cb),0.2)}
+        .tab--add{width:39px;padding:0}.tab--add svg{display:block}
+        .search-area{position:relative}
+        .search-box{display:flex;align-items:flex-start;border-radius:25px;background:#000;border:1px solid rgba(255,255,255,0.1);padding:10px;gap:10px;transition:border-color .2s,background .2s;position:relative;z-index:2;overflow:hidden}
+        .search-box:focus-within{border-color:rgba(255,255,255,0.25)}
+        .search-gradient{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;border-radius:25px;opacity:0;transition:opacity .2s,background .2s}
+        .search-input{flex:1;min-width:0;background:transparent;border:none;outline:none;color:#fff;font-size:16px;font-family:inherit;padding:5px 0 5px 10px;line-height:20px;caret-color:#fff;position:relative;z-index:1;resize:none;overflow-y:auto;height:30px;max-height:300px}
+        .search-input::placeholder{color:rgba(255,255,255,0.4)}
+        .search-source{font-size:16px;color:rgba(255,255,255,0.2);white-space:nowrap;position:relative;z-index:1;pointer-events:none;user-select:none;transition:opacity .2s;padding-right:4px}
+        .sb{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,0.1);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s;flex-shrink:0;outline:none;position:relative;z-index:1}
+        .sb:hover{background:rgba(255,255,255,0.18)}.sb:active{background:rgba(255,255,255,0.25)}
+        .sb.mic-on{background:rgba(239,83,80,0.25)}
+        .sb.mic-on:hover{background:rgba(239,83,80,0.35)}
+        .sb.mic-processing{animation:micPulse 0.8s ease-in-out infinite}
+        @keyframes micPulse{0%,100%{background:rgba(255,180,0,0.2)}50%{background:rgba(255,180,0,0.4)}}
+        .sb svg{display:block}
+        .suggestions{position:absolute;top:calc(100% + 5px);left:0;right:0;z-index:10;border-radius:20px;background:#141414;border:1px solid rgba(255,255,255,0.1);padding:10px;display:none;flex-direction:column;gap:5px;overflow-y:auto;overscroll-behavior:contain}
+        .suggestions.visible{display:flex;animation:sugIn .12s ease-out}
+        .suggestions::-webkit-scrollbar{width:4px}.suggestions::-webkit-scrollbar-track{background:transparent;margin:10px 0}.suggestions::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:4px}
+        .suggestions{scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.12) transparent}
+        @keyframes sugIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+        .si{border-radius:10px;padding:10px;cursor:pointer;transition:background .1s;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:16px;line-height:1.25;display:flex;align-items:center;gap:10px;flex-shrink:0}
+        .si:hover,.si.selected{background:#212121}
+        .si-ico{width:16px;height:16px;flex-shrink:0;opacity:.35}
+        .si-t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .po{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s ease-out}
+        .po.open{opacity:1;pointer-events:all}
+        .pp{width:100%;max-width:480px;border-radius:50px;background:#141414;border:1px solid rgba(255,255,255,0.1);padding:30px;display:flex;flex-direction:column;gap:20px;transform:translateY(10px) scale(0.97);transition:transform .2s ease-out}
+        .po.open .pp{transform:translateY(0) scale(1)}
+        .ps{display:flex;flex-direction:column;gap:13px}
+        .pl{font-size:16px;color:#fff}
+        .pi{width:100%;border-radius:10px;background:#141414;border:1px solid rgba(255,255,255,0.1);padding:16px;color:#fff;font-size:16px;font-family:inherit;outline:none;transition:border-color .2s}
+        .pi::placeholder{color:rgba(255,255,255,0.2)}.pi:focus{border-color:rgba(255,255,255,0.25)}
+        .pd{width:100%;border-radius:40px;background:rgba(255,255,255,0.07);border:1px solid #363636;padding:16px 10px;color:#fff;font-size:16px;font-family:inherit;font-weight:500;cursor:pointer;text-align:center;transition:background .15s;outline:none}
+        .pd:hover{background:rgba(255,255,255,0.12)}
+        .pc-wrap{display:flex;flex-wrap:wrap;gap:10px}
+        .pc{width:40px;height:40px;border-radius:50%;border:3px solid #272727;cursor:pointer;transition:border-color .2s,transform .15s;outline:none}
+        .pc:hover{transform:scale(1.1)}.pc.sel{border-color:#fff}
+        .pp-btns{display:flex;flex-direction:column;gap:10px}
+        .p-save{width:100%;border-radius:40px;background:#fff;border:1px solid #141414;padding:16px 10px;color:#141414;font-size:16px;font-family:inherit;font-weight:500;cursor:pointer;text-align:center;transition:opacity .15s;outline:none}
+        .p-save:hover{opacity:.9}
+        .p-del{width:100%;border-radius:40px;background:rgba(255,255,255,0.07);border:1px solid #363636;padding:16px 10px;color:#fff;font-size:16px;font-family:inherit;font-weight:500;cursor:pointer;text-align:center;transition:background .15s;outline:none;display:none}
+        .p-del:hover{background:rgba(255,255,255,0.12)}
+        .p-del.vis{display:block}
+        @media print{body{background:#000}.suggestions,.po{display:none!important}}
+    </style>
+</head>
+<body>
+<div class="container">
+    <a class="proxy-counter" href="https://dash.cloudflare.com" target="_blank" id="proxyCounter">Metrics</a>
+    <div class="tabs" id="tabs"></div>
+    <div class="search-area">
+        <div class="search-box" id="searchBox">
+            <div class="search-gradient" id="searchGradient"></div>
+            <textarea class="search-input" id="searchInput" placeholder="Поиск в Google" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" rows="1" autofocus></textarea>
+            <span class="search-source" id="searchSource"></span>
+            <button class="sb" id="micBtn" aria-label="Голосовой ввод"><svg width="14" height="14" viewBox="0 0 24 24" fill="white" stroke="none"><path d="M12 1a4 4 0 0 0-4 4v6a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4zm0 2a2 2 0 0 1 2 2v6a2 2 0 0 1-4 0V5a2 2 0 0 1 2-2zm-1 15.93A8 8 0 0 1 4 11h2a6 6 0 0 0 12 0h2a8 8 0 0 1-7 7.93V22h-2v-3.07z"/></svg></button>
+            <button class="sb" id="settingsBtn" aria-label="Настройки"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="16" viewBox="0 0 14 16" fill="none"><path d="M5.92773 0.26782C6.54642 -0.0892734 7.30905 -0.0892733 7.92773 0.26782L12.8555 3.11354C13.4741 3.47068 13.8552 4.13074 13.8555 4.84499V10.5364L13.8516 10.6692C13.8074 11.3318 13.4355 11.9329 12.8555 12.2679L7.92773 15.1136L7.81055 15.1761C7.25415 15.4499 6.60132 15.4499 6.04492 15.1761L5.92773 15.1136L1 12.2679C0.419933 11.9329 0.0480285 11.3318 0.00390625 10.6692L0 10.5364V4.84499C0.000241219 4.17529 0.335009 3.55323 0.886719 3.18385L1 3.11354L5.92773 0.26782ZM7.42773 1.13404C7.11841 0.955514 6.73706 0.955514 6.42773 1.13404L1.5 3.97975C1.19081 4.15827 1.00026 4.488 1 4.84499V10.5364C1.00014 10.8935 1.1908 11.2231 1.5 11.4017L6.42773 14.2474C6.73713 14.426 7.11834 14.426 7.42773 14.2474L12.3555 11.4017C12.6647 11.2231 12.8553 10.8935 12.8555 10.5364V4.84499C12.8552 4.488 12.6647 4.15827 12.3555 3.97975L7.42773 1.13404ZM6.92773 6.6907C7.47991 6.6907 7.92756 7.13857 7.92773 7.69071C7.92773 8.243 7.48002 8.69071 6.92773 8.69071C6.37545 8.69071 5.92773 8.243 5.92773 7.69071C5.92791 7.13857 6.37556 6.6907 6.92773 6.6907Z" fill="white"/></svg></button>
+            <button class="sb" id="searchBtn" aria-label="Искать"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="13 6 19 12 13 18"/></svg></button>
+        </div>
+        <div class="suggestions" id="suggestions"></div>
+    </div>
+</div>
+<div class="po" id="popupOverlay">
+    <div class="pp" id="popup">
+        <div class="ps"><div class="pl">Название</div><input class="pi" id="popupName" placeholder="Beatport" autocomplete="off"></div>
+        <div class="ps"><div class="pl">Ссылка</div><input class="pi" id="popupUrl" placeholder="https://www.beatport.com/search?q=" autocomplete="off"><button class="pd" id="popupDetect">Определить ключ</button></div>
+        <div class="ps"><div class="pl">Цвет</div><div class="pc-wrap" id="popupColors"></div></div>
+        <div class="pp-btns">
+            <button class="p-save" id="popupSave">Сохранить</button>
+            <button class="p-del" id="popupDel">Удалить</button>
+        </div>
+    </div>
+</div>
+<script>
+(function(){
+    var PAL=['#ffffff','#e57373','#f28b54','#d9a441','#b8b84d','#81c784','#4db6ac','#4fc3f7','#64b5f6','#7986cb','#9575cd','#ba68c8','#f06292','#64808e'];
+    var SDB={'google':'https://www.google.com/search?q=','yandex':'https://yandex.ru/search/?text=','яндекс':'https://yandex.ru/search/?text=','youtube':'https://www.youtube.com/results?search_query=','bing':'https://www.bing.com/search?q=','duckduckgo':'https://duckduckgo.com/?q=','yahoo':'https://search.yahoo.com/search?p=','wikipedia':'https://ru.wikipedia.org/wiki/Служебная:Поиск?search=','вики':'https://ru.wikipedia.org/wiki/Служебная:Поиск?search=','amazon':'https://www.amazon.com/s?k=','ebay':'https://www.ebay.com/sch/i.html?_nkw=','github':'https://github.com/search?q=','stackoverflow':'https://stackoverflow.com/search?q=','reddit':'https://www.reddit.com/search/?q=','twitter':'https://x.com/search?q=','x':'https://x.com/search?q=','instagram':'https://www.instagram.com/explore/tags/','pinterest':'https://www.pinterest.com/search/pins/?q=','spotify':'https://open.spotify.com/search/','soundcloud':'https://soundcloud.com/search?q=','beatport':'https://www.beatport.com/search?q=','apple music':'https://music.apple.com/search?term=','aliexpress':'https://www.aliexpress.com/wholesale?SearchText=','ozon':'https://www.ozon.ru/search/?text=','озон':'https://www.ozon.ru/search/?text=','wildberries':'https://www.wildberries.ru/catalog/0/search.aspx?search=','вб':'https://www.wildberries.ru/catalog/0/search.aspx?search=','avito':'https://www.avito.ru/rossiya?q=','авито':'https://www.avito.ru/rossiya?q=','habr':'https://habr.com/ru/search/?q=','хабр':'https://habr.com/ru/search/?q=','npm':'https://www.npmjs.com/search?q=','twitch':'https://www.twitch.tv/search?term=','vk':'https://vk.com/search?c%5Bq%5D=','вк':'https://vk.com/search?c%5Bq%5D=','telegram':'https://t.me/s/','yandex maps':'https://yandex.ru/maps/?text=','яндекс карты':'https://yandex.ru/maps/?text=','google maps':'https://www.google.com/maps/search/','imdb':'https://www.imdb.com/find/?q=','kinopoisk':'https://www.kinopoisk.ru/index.php?kp_query=','кинопоиск':'https://www.kinopoisk.ru/index.php?kp_query=','netflix':'https://www.netflix.com/search?q=','hh':'https://hh.ru/search/vacancy?text=','linkedin':'https://www.linkedin.com/search/results/all/?keywords=','figma':'https://www.figma.com/community/search?query=','dribbble':'https://dribbble.com/search/','behance':'https://www.behance.net/search/projects?search=','unsplash':'https://unsplash.com/s/photos/','pexels':'https://www.pexels.com/search/','translate':'https://translate.google.com/?sl=auto&tl=ru&text=','переводчик':'https://translate.google.com/?sl=auto&tl=ru&text=','chatgpt':'https://chatgpt.com/?q=','perplexity':'https://www.perplexity.ai/search?q=','wolfram':'https://www.wolframalpha.com/input?i=','notion':'https://www.notion.so/search?q=','tiktok':'https://www.tiktok.com/search?q=','тикток':'https://www.tiktok.com/search?q=','medium':'https://medium.com/search?q='};
+    var DEFS=[
+        {id:'google',name:'Google',url:'https://www.google.com/search?q=',ph:'Поиск в Google',suggest:'google'},
+        {id:'yandex',name:'Яндекс',url:'https://yandex.ru/search/?text=',ph:'Поиск в Яндексе',suggest:'yandex'},
+        {id:'youtube',name:'YouTube',url:'https://www.youtube.com/results?search_query=',ph:'Поиск на YouTube',suggest:'youtube'}
+    ];
+    var PROXY='https://wandering-leaf-8154.mxmmrklvs.workers.dev/?url=';
+    var SCRAPE='https://wandering-leaf-8154.mxmmrklvs.workers.dev/?mode=scrape&url=';
+    var engs=[],custom=[],defOvr={},aIdx=0,sug=[],sel=-1,tid=null,fid=0,jid=0;
+    var $i=document.getElementById('searchInput'),$s=document.getElementById('suggestions'),$b=document.getElementById('searchBtn'),$t=document.getElementById('tabs'),$bx=document.getElementById('searchBox'),$gr=document.getElementById('searchGradient'),$src=document.getElementById('searchSource'),$ov=document.getElementById('popupOverlay'),$pn=document.getElementById('popupName'),$pu=document.getElementById('popupUrl'),$pd=document.getElementById('popupDetect'),$pc=document.getElementById('popupColors'),$ps=document.getElementById('popupSave'),$pdl=document.getElementById('popupDel');
+
+    function load(){try{custom=JSON.parse(localStorage.getItem('ce')||'[]')}catch(e){custom=[]}try{defOvr=JSON.parse(localStorage.getItem('do')||'{}')}catch(e){defOvr={}}}
+    function save(){localStorage.setItem('ce',JSON.stringify(custom));localStorage.setItem('do',JSON.stringify(defOvr))}
+    function h2hsl(h){var r=parseInt(h.slice(1,3),16)/255,g=parseInt(h.slice(3,5),16)/255,b=parseInt(h.slice(5,7),16)/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),hh,s,l=(mx+mn)/2;if(mx===mn){hh=s=0}else{var d=mx-mn;s=l>.5?d/(2-mx-mn):d/(mx+mn);switch(mx){case r:hh=((g-b)/d+(g<b?6:0))/6;break;case g:hh=((b-r)/d+2)/6;break;case b:hh=((r-g)/d+4)/6;break}}return[Math.round(hh*360),Math.round(s*100),Math.round(l*100)]}
+    function h2rgb(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]}
+    function applyColor(eng){var c=eng&&eng.color;if(!c){$bx.style.borderColor='';$gr.style.opacity='0';return}var rgb=h2rgb(c),hsl=h2hsl(c);$bx.style.borderColor='rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+',0.4)';var dL=Math.max(0,hsl[2]-20);$gr.style.background='linear-gradient(91deg, hsla('+hsl[0]+','+hsl[1]+'%,'+dL+'%,0.2) 0%, hsla('+hsl[0]+','+hsl[1]+'%,'+dL+'%,0) 62%)';$gr.style.opacity='1'}
+
+    function build(){engs=[];DEFS.forEach(function(d){var o=defOvr[d.id]||{};engs.push({id:d.id,name:o.name||d.name,url:o.url||d.url,ph:d.ph,suggest:d.suggest,color:o.color||null,isDef:true})});custom.forEach(function(c){engs.push({id:'c_'+c.name,name:c.name,url:c.url,ph:'Поиск: '+c.name,color:c.color,isDef:false})})}
+    function renderTabs(){var h='';engs.forEach(function(e,i){var cl='tab'+(i===aIdx?' active':''),st='';if(e.color){var rgb=h2rgb(e.color);cl+=' tab--colored';st=' style="--cr:'+rgb[0]+';--cg:'+rgb[1]+';--cb:'+rgb[2]+'"'}h+='<button class="'+cl+'" data-idx="'+i+'"'+st+'>'+esc(e.name)+'</button>'});h+='<button class="tab tab--add" data-action="add"><svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M5.5 0C5.77614 0 6 0.223858 6 0.5V5H10.5C10.7761 5 11 5.22386 11 5.5C11 5.77614 10.7761 6 10.5 6H6V10.5C6 10.7761 5.77614 11 5.5 11C5.22386 11 5 10.7761 5 10.5V6H0.5C0.223858 6 0 5.77614 0 5.5C0 5.22386 0.223858 5 0.5 5H5V0.5C5 0.223858 5.22386 0 5.5 0Z" fill="white"/></svg></button>';$t.innerHTML=h}
+    function setAct(i){if(i<0||i>=engs.length)return;aIdx=i;renderTabs();var e=engs[i];$i.placeholder=e.ph;applyColor(e);if($i.value.trim())doF();else hideS();$i.focus()}
+
+    function jsonp(url,ms){ms=ms||4000;return new Promise(function(ok,f){var n='_c'+(++jid)+'_'+Date.now(),sc=document.createElement('script'),d=false,tm;function cl(){d=true;clearTimeout(tm);try{delete window[n]}catch(e){}if(sc.parentNode)sc.parentNode.removeChild(sc)}window[n]=function(r){if(d)return;cl();ok(r)};sc.src=url+'&callback='+n;sc.referrerPolicy='no-referrer';sc.onerror=function(){if(d)return;cl();f(new Error('n'))};tm=setTimeout(function(){if(!d){cl();f(new Error('t'))}},ms);document.head.appendChild(sc)})}
+
+    /* Suggest endpoints by domain — fetched via proxy */
+    var SEP={
+        'yandex.ru':{u:'https://suggest.yandex.ru/suggest-ya.cgi?v=4&uil=ru&lr=213&sn=10&part=',p:'ya'},
+        'yandex.ru/maps':{u:'https://suggest-maps.yandex.ru/v1/suggest?text=',p:'yamaps'},
+        'wikipedia.org':{u:'https://ru.wikipedia.org/w/api.php?action=opensearch&format=json&limit=10&search=',p:'open'},
+        'en.wikipedia.org':{u:'https://en.wikipedia.org/w/api.php?action=opensearch&format=json&limit=10&search=',p:'open'},
+        'duckduckgo.com':{u:'https://duckduckgo.com/ac/?q=',p:'ddg'},
+        'bing.com':{u:'https://api.bing.com/osjson.aspx?query=',p:'open'},
+    };
+
+    function domU(u){try{return new URL(u).hostname.replace(/^www\./,'')}catch(e){return''}}
+
+    function pxFetch(sUrl,q,pt){
+        return fetch(PROXY+encodeURIComponent(sUrl+q)).then(function(r){return r.json()}).then(function(d){
+            if(pt==='ya'){if(!d||!d[1])return[];return d[1].map(function(i){return typeof i==='string'?i:Array.isArray(i)?i[1]:null}).filter(Boolean)}
+            if(pt==='open')return d&&d[1]||[];
+            if(pt==='ddg')return(d||[]).map(function(i){return i.phrase}).filter(Boolean);
+            if(pt==='amz')return(d&&d.suggestions||[]).map(function(i){return i.value}).filter(Boolean);
+            if(pt==='yamaps')return(d&&d.results||[]).map(function(i){return(i.title&&i.title.text)||(i.subtitle&&i.subtitle.text)||''}).filter(Boolean);
+            if(pt==='bp')return(Array.isArray(d)?d:d&&d.data||[]).map(function(i){return typeof i==='string'?i:i.name||i.title||i.query||''}).filter(Boolean);
+            if(pt==='habr')return(Array.isArray(d)?d:d&&d.data||[]).map(function(i){return typeof i==='string'?i:i.title||i.text||''}).filter(Boolean);
+            if(pt==='sc')return(d&&d.collection||d||[]).map(function(i){return typeof i==='string'?i:i.output||i.query||''}).filter(Boolean);
+            if(d&&d[1])return d[1];
+            return[]
+        }).catch(function(){return[]})
+    }
+
+    function gGet(q){return jsonp('https://suggestqueries.google.com/complete/search?client=chrome&hl=ru&gl=ru&q='+q).then(function(d){return d&&d[1]||[]})}
+    function ytGet(q){return jsonp('https://suggestqueries.google.com/complete/search?client=chrome&ds=yt&hl=ru&q='+q).then(function(d){return d&&d[1]||[]})}
+
+
+    var sugSource='';
+
+    function scrapeSug(searchUrl,q){
+        var u=SCRAPE+encodeURIComponent(searchUrl)+'&q='+q;
+        return fetch(u).then(function(r){return r.json()}).then(function(d){return Array.isArray(d)?d:[]}).catch(function(){return[]})
+    }
+
+    var sugSource='';
+
+    function getSug(query){
+        var q=encodeURIComponent(query),id=++fid,e=engs[aIdx],p;
+        $src.textContent='загрузка...';
+        if(e.suggest==='google'){sugSource='Google';p=gGet(q)}
+        else if(e.suggest==='youtube'){sugSource='YouTube';p=ytGet(q)}
+        else if(e.suggest==='yandex'){sugSource='Яндекс';p=pxFetch(SEP['yandex.ru'].u,q,'ya').then(function(r){if(r.length)return r;sugSource='Google';return gGet(q)})}
+        else{
+            var dom=domU(e.url),ep=null,srcName='';
+            if(e.url.indexOf('yandex.ru/maps')!==-1){ep=SEP['yandex.ru/maps'];srcName='Яндекс Карты'}
+            else if(SEP[dom]){ep=SEP[dom];srcName=dom}
+            else{var pts=dom.split('.');if(pts.length>2){var par=pts.slice(-2).join('.');if(SEP[par]){ep=SEP[par];srcName=par}}}
+            if(ep){
+                sugSource=srcName||dom;
+                p=pxFetch(ep.u,q,ep.p).then(function(r){
+                    if(r.length)return r;
+                    return scrapeSug(e.url,q).then(function(sr){
+                        if(sr.length){sugSource=dom;return sr}
+                        sugSource='Google';return gGet(q)
+                    })
+                })
+            } else {
+                sugSource=dom||e.name;
+                p=scrapeSug(e.url,q).then(function(r){
+                    if(r.length)return r;
+                    sugSource='Google';return gGet(q)
+                })
+            }
+        }
+        return p.then(function(it){return id===fid?it:[]})
+    }
+
+    var ico='<svg class="si-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>';
+    function calcH(){var r=$bx.getBoundingClientRect();$s.style.maxHeight=Math.max(120,window.innerHeight-r.bottom-15)+'px'}
+    function showS(it){sug=it.slice(0,10);sel=-1;if(!sug.length){hideS();return}$s.innerHTML=sug.map(function(t,i){return'<div class="si" data-i="'+i+'">'+ico+'<span class="si-t">'+esc(t)+'</span></div>'}).join('');calcH();$s.scrollTop=0;$s.classList.add('visible');$src.textContent='from '+sugSource}
+    function hideS(){$s.classList.remove('visible');sug=[];sel=-1;$src.textContent=''}
+    function updS(){var it=$s.querySelectorAll('.si');for(var i=0;i<it.length;i++)it[i].classList.toggle('selected',i===sel);if(sel>=0&&it[sel])it[sel].scrollIntoView({block:'nearest'})}
+    function esc(s){var d=document.createElement('span');d.textContent=s;return d.innerHTML}
+    function go(q){q=(q||'').trim();if(q)window.open(engs[aIdx].url+encodeURIComponent(q),'_blank')}
+    function doF(){var v=$i.value.trim();if(!v){hideS();return}getSug(v).then(function(r){if(r.length)showS(r)}).catch(function(){})}
+
+    /* ── Auto-resize textarea ── */
+    function autoResize(){$i.style.height='30px';$i.style.height=Math.min($i.scrollHeight,300)+'px'}
+    $i.addEventListener('input',function(){autoResize();clearTimeout(tid);tid=setTimeout(doF,300)});
+    $i.addEventListener('focus',function(){if($i.value.trim())doF()});
+    $i.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();go(sel>=0&&sug[sel]?sug[sel]:$i.value);hideS()}else if(e.key==='ArrowDown'){e.preventDefault();if(!sug.length)return;sel=Math.min(sel+1,sug.length-1);updS();$i.value=sug[sel]}else if(e.key==='ArrowUp'){e.preventDefault();if(sel>0){sel--;updS();$i.value=sug[sel]}else if(sel===0){sel=-1;updS()}}else if(e.key==='Escape')hideS();else if(e.key==='Tab'){e.preventDefault();setAct((aIdx+(e.shiftKey?-1:1)+engs.length)%engs.length)}});
+    $b.addEventListener('click',function(){go($i.value)});
+    /* ── Voice input with Az.js morphology ── */
+    var micOn=false,recognition=null,morphReady=false;
+    var $mic=document.getElementById('micBtn');
+    var lastFinalTime=0;
+
+    /* Load Az.js morphology */
+    var azScript=document.createElement('script');
+    azScript.src='Az.js-master/dist/az.min.js';
+    azScript.onload=function(){
+        console.log('[Az.js] script loaded');
+        if(window.Az&&Az.Morph){
+            Az.Morph.init('Az.js-master/dicts/',function(){
+                morphReady=true;
+                console.log('[Az.js] morph ready — 389 000 words loaded')
+            })
+        }else{console.error('[Az.js] Az object not found')}
+    };
+    azScript.onerror=function(){console.error('[Az.js] FAILED to load script')};
+    document.head.appendChild(azScript);
+
+    /* ── Morphology-based analysis ── */
+    function analyzeSentence(sent){
+        if(!morphReady||!sent.trim())return{isQuestion:false,text:sent};
+        var words=sent.trim().split(/\s+/);
+        var lastWord=words[words.length-1].replace(/[^а-яёa-z]/gi,'');
+        var isQ=false;
+
+        // Check last word — verb in 2nd person?
+        if(lastWord){
+            var parses=Az.Morph(lastWord);
+            if(parses&&parses.length>0){
+                var tag=parses[0].tag;
+                if(tag.VERB&&tag.per2)isQ=true;
+                if(tag.VERB&&tag.impr)isQ=true; // imperative can be question
+            }
+        }
+
+        // Check first word
+        var firstWord=words[0].replace(/[^а-яёa-z]/gi,'');
+        if(firstWord){
+            var fp=Az.Morph(firstWord);
+            if(fp&&fp.length>0&&fp[0].tag.VERB&&fp[0].tag.per2)isQ=true;
+        }
+
+        return{isQuestion:isQ,text:sent}
+    }
+
+    /* ── Punctuation rules ── */
+    var COMMA_BEFORE=/ (что |который |которая |которое |которые |потому что |так как |хотя |однако |если |когда |чтобы |пока |где |куда |поэтому |ведь |ибо |зато |причём |чем |хоть и |то есть |а именно |как только |пока не |после того как |перед тем как |для того чтобы |несмотря на то что |в то время как |давай |давайте )/gi;
+    var COMMA_A=/(?<=[а-яё]) (а |но )(?=[а-яё])/gi;
+    var INTRO=/^(конечно|наверное|кстати|кажется|видимо|вероятно|например|пожалуйста|значит|допустим|собственно|впрочем|итак|в общем|короче|слушай|смотри|видишь|понимаешь|знаешь|ну|вот|да|так|ладно|окей|хорошо|получается|оказывается) /i;
+    var SENT_BREAK=/(?<=[а-яё.?!]) (ну |вот |короче |в общем |так вот |слушай |смотри |а ещё |и ещё |потом |кстати |также |к тому же |более того |при этом |между прочим |тем не менее |давай |значит |получается |оказывается )/gi;
+    var NO_BREAK_AFTER=/^(ещё|тоже|также|же|ведь|уже|даже|просто|только|именно|очень|совсем|вообще)$/i;
+    var Q_FIRST=/^(кто|что|где|когда|куда|откуда|зачем|почему|как|сколько|какой|какая|какое|какие|чей|который|неужели|разве|а что|а где|а как|а кто|а почему|а зачем|а когда)\b/i;
+    var Q_ANYWHERE=/\b(почему|зачем|как же|куда|откуда|неужели|разве|правда ли|может ли|можно ли|нужно ли|есть ли|будет ли|был ли|ли)\b/i;
+    var Q_SHORT=/^(да|нет|правда|серьёзно|точно|нормально|ладно|реально|а ты|а что|ты тут|ты здесь)$/i;
+    var Q_VERB_END=/\b(ешь|ёшь|ишь|ешься|ишься|ёшься)$/i;
+    var PREPOSITIONS=/^(в|на|к|с|о|по|за|из|от|до|для|без|при|над|под|об|у|через)$/i;
+
+    function isQuestion(s){
+        var trimmed=s.trim();
+        if(Q_FIRST.test(trimmed.split(/[\s,]+/)[0]))return true;
+        if(Q_ANYWHERE.test(trimmed))return true;
+        if(Q_SHORT.test(trimmed))return true;
+        if(Q_VERB_END.test(trimmed.split(/\s+/).pop()))return true;
+        // Az.js check
+        var analysis=analyzeSentence(trimmed);
+        if(analysis.isQuestion)return true;
+        return false
+    }
+
+    function processFull(raw){
+        var t=raw.toLowerCase().replace(/ +/g,' ').trim();
+        if(!t)return'';
+        // Remove spoken punctuation words
+        t=t.replace(/\bточка\b/g,'').replace(/\bзапятая\b/g,'').replace(/\bвопросительный знак\b/g,'').replace(/\bвосклицательный знак\b/g,'').replace(/\bдвоеточие\b/g,'').replace(/\bтире\b/g,'').replace(/\bмноготочие\b/g,'').replace(/\bновая строка\b/g,'').replace(/\bабзац\b/g,'');
+        // Sentence breaks by markers
+        t=t.replace(SENT_BREAK,function(m,w){
+            var next=w.trim();
+            if(NO_BREAK_AFTER.test(next))return m;
+            return'. '+next+' '
+        });
+        // Commas
+        t=t.replace(COMMA_BEFORE,function(m,w){return', '+w});
+        t=t.replace(COMMA_A,function(m,w){return', '+w+' '});
+        // Intro words comma
+        t=t.replace(/(^|(?:\.\s*))([а-яё]+)/gi,function(m,pre,word){
+            if(INTRO.test(word+' '))return pre+word+',';
+            return m
+        });
+        // Clean up
+        t=t.replace(/ +/g,' ').replace(/,\s*,/g,',').replace(/\.\s*\./g,'.').replace(/,\./g,'.').trim();
+        // Split into sentences and add ending punctuation
+        var sents=t.split(/\.\s*/);
+        sents=sents.map(function(s,idx){
+            s=s.trim();if(!s)return'';
+            if(!s.match(/[.!?]$/)){
+                // Last sentence — no period (messaging etiquette)
+                if(idx===sents.length-1){
+                    // No punctuation at end of last sentence
+                }else{
+                    if(isQuestion(s))s+='?'; else s+='.'
+                }
+            }
+            return s
+        }).filter(Boolean);
+        return sents.join(' ')
+    }
+
+    /* ── Speech Recognition ── */
+    var accumulatedText='';
+    var rawBuffer='';
+    var processTimer=null;
+    var isProcessing=false;
+
+    if(window.SpeechRecognition||window.webkitSpeechRecognition){
+        var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+        recognition=new SR();
+        recognition.lang='ru-RU';
+        recognition.interimResults=true;
+        recognition.continuous=true;
+        recognition.maxAlternatives=1;
+
+        recognition.onresult=function(e){
+            var sessionFinal='',interim='';
+            for(var i=0;i<e.results.length;i++){
+                var r=e.results[i];
+                if(!r||!r[0])continue;
+                if(r.isFinal){
+                    sessionFinal+=(r[0].transcript||'')
+                }else{
+                    interim+=(r[0].transcript||'')
+                }
+            }
+            // Show raw text immediately — no processing delay
+            rawBuffer=sessionFinal;
+            var display=accumulatedText+(accumulatedText&&rawBuffer?' ':'')+rawBuffer.toLowerCase();
+            if(interim)display+=(display?' ':'')+interim.toLowerCase();
+            $i.value=display;
+            autoResize();$i.scrollTop=$i.scrollHeight;
+
+            // Schedule background processing
+            clearTimeout(processTimer);
+            if(sessionFinal){
+                processTimer=setTimeout(processInBackground,1000)
+            }
+        };
+
+        function processInBackground(){
+            if(!rawBuffer)return;
+            isProcessing=true;
+            $mic.classList.add('mic-processing');
+
+            // Process accumulated + raw
+            var fullRaw=accumulatedText+(accumulatedText&&rawBuffer?' ':'')+rawBuffer;
+            var processed=processFull(fullRaw);
+
+            // Update only the processed part, keep interim untouched
+            accumulatedText=processed;
+            rawBuffer='';
+            var currentInterim=$i.value.split(processed).pop()||'';
+            $i.value=processed+(currentInterim?' '+currentInterim:'');
+            autoResize();
+
+            isProcessing=false;
+            $mic.classList.remove('mic-processing');
+        }
+
+        recognition.onend=function(){
+            // Save current state
+            if(rawBuffer){
+                accumulatedText+=(accumulatedText?' ':'')+rawBuffer.toLowerCase();
+                rawBuffer='';
+            }
+            if(micOn){setTimeout(function(){if(micOn){try{recognition.start()}catch(e){}}},100)}
+        };
+        recognition.onerror=function(e){
+            console.log('[mic error]',e.error);
+            if(e.error==='not-allowed'){micOn=false;$mic.classList.remove('mic-on');$mic.classList.remove('mic-processing')}
+        };
+    }
+    $mic.addEventListener('click',function(){
+        if(!recognition){alert('голосовой ввод не поддерживается');return}
+        if(micOn){micOn=false;recognition.stop();$mic.classList.remove('mic-on');$mic.classList.remove('mic-processing');
+            // Final processing
+            if(rawBuffer){accumulatedText+=(accumulatedText?' ':'')+rawBuffer.toLowerCase();rawBuffer=''}
+            $i.value=processFull(accumulatedText);autoResize();doF();return}
+        micOn=true;$mic.classList.add('mic-on');
+        // Continue from existing text
+        accumulatedText=$i.value.trim();
+        rawBuffer='';
+        try{recognition.start()}catch(e){}
+    });
+
+    document.getElementById('settingsBtn').addEventListener('click',function(){openEdit(aIdx)});
+    $t.addEventListener('click',function(e){var t=e.target.closest('.tab');if(!t)return;if(t.dataset.action==='add'){openAdd();return}if(t.dataset.idx!==undefined)setAct(parseInt(t.dataset.idx,10))});
+    $s.addEventListener('click',function(e){var it=e.target.closest('.si');if(!it)return;var i=parseInt(it.dataset.i,10);if(sug[i]){$i.value=sug[i];go(sug[i]);hideS()}});
+    document.addEventListener('click',function(e){if(!e.target.closest('.container'))hideS()});
+    window.addEventListener('resize',function(){if($s.classList.contains('visible'))calcH()});
+
+    var pColor=null,editMode=null,editKey=null;
+    function renderPC(){$pc.innerHTML=PAL.map(function(c){return'<button class="pc'+(c===pColor?' sel':'')+'" data-c="'+c+'" style="background:'+c+'"></button>'}).join('')}
+    function openAdd(){editMode='add';editKey=null;pColor=null;$pn.value='';$pu.value='';$pdl.classList.remove('vis');renderPC();$ov.classList.add('open');setTimeout(function(){$pn.focus()},100)}
+    function openEdit(idx){var e=engs[idx];if(!e)return;if(e.isDef){editMode='def';editKey=e.id}else{editMode='custom';editKey=idx-DEFS.length}$pn.value=e.name;$pu.value=e.url;pColor=e.color||null;$pdl.classList.toggle('vis',editMode==='custom');renderPC();$ov.classList.add('open');setTimeout(function(){$pn.focus()},100)}
+    function closeP(){$ov.classList.remove('open');$i.focus()}
+    $ov.addEventListener('click',function(e){if(e.target===$ov)closeP()});
+    $pc.addEventListener('click',function(e){var b=e.target.closest('.pc');if(!b)return;pColor=b.dataset.c;$pc.querySelectorAll('.pc').forEach(function(x){x.classList.toggle('sel',x.dataset.c===pColor)})});
+    $pd.addEventListener('click',function(){
+        var n=$pn.value.trim();if(!n){$pn.focus();return}
+        var lo=n.toLowerCase();
+        // 1. Check hardcoded DB
+        var f=SDB[lo];if(!f){var cl=lo.replace(/\s+/g,'').replace(/[^a-zа-яё0-9]/gi,'');f=SDB[cl]}
+        if(f){$pu.value=f;return}
+        // 2. Auto-discover: fetch site homepage, parse forms & OpenSearch
+        var raw=lo.replace(/\s+/g,'').replace(/[^a-z0-9а-яё.-]/gi,'');
+        var doms=[];
+        if(raw.indexOf('.')!==-1){doms.push(raw)}
+        else if(/[а-яё]/i.test(raw)){doms.push(raw+'.ru',raw+'.com')}
+        else{doms.push(raw+'.com',raw+'.ru',raw+'.org',raw+'.io')}
+        $pd.textContent='Ищем...';$pd.style.opacity='0.5';
+        discoverSearch(doms,0).then(function(url){
+            $pu.value=url;$pd.textContent='Определить ключ';$pd.style.opacity=''
+        }).catch(function(){
+            $pu.value='https://'+doms[0]+'/search?q=';$pd.textContent='Не найден, проверьте';$pd.style.opacity='';
+            setTimeout(function(){$pd.textContent='Определить ключ'},2000)
+        })
+    });
+    function discoverSearch(doms,idx){
+        if(idx>=doms.length)return Promise.reject();
+        var base='https://'+doms[idx];
+        return fetch(PROXY+encodeURIComponent(base),{signal:AbortSignal.timeout(6000)}).then(function(r){return r.text()}).then(function(html){
+            var doc=new DOMParser().parseFromString(html,'text/html');
+            // OpenSearch
+            var osLink=doc.querySelector('link[rel="search"][type*="opensearch"]');
+            if(osLink){
+                var href=osLink.getAttribute('href')||'';
+                if(href&&!href.startsWith('http'))href=base+(href.startsWith('/')?'':'/')+href;
+                return fetch(PROXY+encodeURIComponent(href)).then(function(r){return r.text()}).then(function(xml){
+                    var xd=new DOMParser().parseFromString(xml,'text/xml');
+                    var urlEl=xd.querySelector('Url[type="text/html"]');
+                    if(urlEl){var tpl=urlEl.getAttribute('template');if(tpl)return tpl.replace('{searchTerms}','')}
+                    return parseForm(doc,base);
+                }).catch(function(){return parseForm(doc,base)})
+            }
+            return parseForm(doc,base);
+        }).then(function(r){if(r)return r;return discoverSearch(doms,idx+1)}).catch(function(){return discoverSearch(doms,idx+1)})
+    }
+    function parseForm(doc,base){
+        var forms=doc.querySelectorAll('form');
+        for(var i=0;i<forms.length;i++){
+            var fm=forms[i],act=fm.getAttribute('action')||'';
+            var inp=fm.querySelector('input[type="search"],input[type="text"][name]');
+            if(!inp)continue;
+            var nm=inp.getAttribute('name');if(!nm)continue;
+            var url=act;
+            if(!url.startsWith('http')){url=base+(url.startsWith('/')?'':'/')+url}
+            url+=(url.indexOf('?')!==-1?'&':'?')+nm+'=';
+            return url
+        }
+        // Check for path-based patterns (e.g. /word/{query})
+        var links=doc.querySelectorAll('a[href]');
+        var patterns={};
+        for(var j=0;j<Math.min(links.length,200);j++){
+            var h=links[j].getAttribute('href')||'';
+            var m=h.match(/^(\/[a-z_-]+\/)[^\/]+$/i);
+            if(m)patterns[m[1]]=(patterns[m[1]]||0)+1
+        }
+        var best=null,bestN=0;
+        for(var k in patterns){if(patterns[k]>bestN){bestN=patterns[k];best=k}}
+        if(best&&bestN>=3)return base+best;
+        return null
+    }
+    $ps.addEventListener('click',function(){var nm=$pn.value.trim(),ur=$pu.value.trim();if(!nm){$pn.focus();return}if(!ur){$pu.focus();return}if(!ur.includes('%s')&&!ur.endsWith('=')&&!ur.endsWith('/'))ur+='?q=';if(editMode==='def'){defOvr[editKey]={name:nm,url:ur,color:pColor};save();build();setAct(DEFS.findIndex(function(d){return d.id===editKey}))}else if(editMode==='custom'){custom[editKey]={name:nm,url:ur,color:pColor};save();build();setAct(DEFS.length+editKey)}else{custom.push({name:nm,url:ur,color:pColor});save();build();setAct(engs.length-1)}closeP()});
+    $pdl.addEventListener('click',function(){if(editMode==='custom'&&editKey>=0){custom.splice(editKey,1);save();build();setAct(0);closeP()}});
+
+    load();build();renderTabs();applyColor(engs[aIdx]);
+})();
+</script>
+</body>
+</html>

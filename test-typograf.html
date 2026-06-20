@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Typograf Tests</title>
+<style>
+body{font-family:monospace;background:#111;color:#eee;padding:20px;font-size:14px}
+h1{font-size:18px;margin-bottom:6px}
+.note{color:#888;margin-bottom:20px}
+.pass{color:#4f4}.fail{color:#f44}
+table{border-collapse:collapse;width:100%}
+th,td{text-align:left;padding:6px 10px;border-bottom:1px solid #333;vertical-align:top}
+th{color:#aaa;font-size:12px}
+td.input{color:#888}
+td.expect{color:#8cf}
+td.got{color:#fc8}
+.summary{margin-top:20px;font-size:16px;font-weight:bold}
+.vis{color:#666;font-size:11px}
+</style>
+</head>
+<body>
+<h1>Typograf Test Suite</h1>
+<div class="note">Гоняет боевой движок: <code>typograf.all.min.js</code> + <code>typograf.js</code> (тот же код, что на странице).</div>
+<table>
+<tr><th>#</th><th>Категория</th><th>Вход</th><th>Ожидание</th><th>Результат</th><th></th></tr>
+</table>
+<div class="summary"></div>
+
+<script src="typograf.all.min.js"></script>
+<script src="typograf.js"></script>
+<script>
+var NBS=' ', NBH='‑';
+var T=window.typografText;
+
+var tests=[
+    // Опечатки (безопасные, очевидные)
+    ['Опечатки','вообщем это важно','В'+NBS+'общем это важно'],
+    ['Опечатки','впринципе можно','В'+NBS+'принципе можно'],
+    ['Опечатки','типо так','Типа так'],
+    // Дефис: короткие приставки/частицы → неразрывный дефис
+    ['Дефис','как то да','Как'+NBH+'то да'],
+    ['Дефис','что то случилось','Что'+NBH+'то случилось'],
+    ['Дефис','во первых сделаем','Во'+NBH+'первых сделаем'],
+    ['Дефис','из за угла','Из'+NBH+'за угла'],
+    ['Дефис','по русски говорим','По'+NBH+'русски говорим'],
+    ['Дефис','кое что и кто нибудь','Кое'+NBH+'что и'+NBS+'кто'+NBH+'нибудь'],
+    // Дефис: длинные сложные слова → обычный дефис (можно переносить)
+    ['Дефис длинный','это интернет-магазин','Это интернет-магазин'],
+    // Капитализация
+    ['Капс','ПРИВЕТ МИР КАК ДЕЛА','Привет мир как'+NBS+'дела'],
+    ['Капс: аббревиатуры не трогать','ВВП РОССИИ','ВВП РОССИИ'],
+    ['После !?…','правда! "мир"','Правда! «Мир»'],
+    ['Многоточие','ну... ладно','Ну… Ладно'],
+    // Тире
+    ['Тире','он - молодец','Он'+NBS+'— молодец'],
+    ['Тире','москва -- столица','Москва'+NBS+'— столица'],
+    ['Диапазон','с 5-10 мая','С'+NBS+'5–10'+NBS+'мая'],
+    // Числа
+    ['Числа','100000 рублей','100'+NBS+'000'+NBS+'рублей'],
+    ['Числа','1000000','1'+NBS+'000'+NBS+'000'],
+    // Валюта
+    ['Валюта','500 руб','500'+NBS+'₽'],
+    ['Валюта','500р','500'+NBS+'₽'],
+    ['Валюта','1000 р.','1000'+NBS+'₽'],
+    // Единицы
+    ['Единицы','5 кг муки','5'+NBS+'кг'+NBS+'муки'],
+    ['Единицы','100 Гб памяти','100'+NBS+'Гб'+NBS+'памяти'],
+    // Кавычки
+    ['Кавычки','"привет" сказал он','«Привет» сказал он'],
+    // Бренд еЛама (несклоняемый)
+    ['еЛама','елама курсы','еЛама курсы'],
+    ['еЛама','обучение в еламе','Обучение в'+NBS+'еЛама'],
+    ['eLama','elama platform','eLama platform'],
+    // URL не ломается
+    ['URL','зайди на https://example.com/path?q=test и проверь','Зайди на'+NBS+'https://example.com/path?q=test и'+NBS+'проверь'],
+    // Символы
+    ['Символы','(c) 2024 (r) (tm)','© 2024 ® ™'],
+    ['Символы','2x3 метра','2×3 метра'],
+    // Короткие слова / частицы
+    ['NBS','я не знаю','Я'+NBS+'не'+NBS+'знаю'],
+    ['Частицы','сделал бы','Сделал'+NBS+'бы'],
+    ['Частицы','знаешь ли ты','Знаешь'+NBS+'ли ты'],
+    // Аббревиатуры
+    ['Аббревиатуры','итд итп','И'+NBS+'т.'+NBS+'д.'+NBS+'и'+NBS+'т.'+NBS+'п.'],
+    // Бренды
+    ['Бренды','яндекс директ настройка','Яндекс'+NBS+'Директ настройка'],
+    ['Бренды','google ads обучение','Google'+NBS+'Ads обучение'],
+    // Латиница → кириллица (хомоглифы) внутри слова
+    ['Хомоглифы','пpивeт мир','Привет мир'],
+    ['Англ. не трогать','vitamin c and a cat','Vitamin c'+NBS+'and a'+NBS+'cat']
+];
+
+function vis(s){
+    return s.replace(/ /g,'<span class="vis">[NBS]</span>')
+            .replace(/‑/g,'<span class="vis">[NBH]</span>')
+            .replace(/ /g,'<span class="vis">[NNBSP]</span>');
+}
+
+var table=document.querySelector('table');
+var passed=0,failed=0;
+tests.forEach(function(test,i){
+    var cat=test[0],input=test[1],expected=test[2];
+    var got=T(input);
+    var ok=got===expected;
+    if(ok)passed++;else failed++;
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>'+(i+1)+'</td><td>'+cat+'</td><td class="input">'+input+'</td><td class="expect">'+vis(expected)+'</td><td class="got">'+vis(got)+'</td><td class="'+(ok?'pass':'fail')+'">'+(ok?'PASS':'FAIL')+'</td>';
+    table.appendChild(tr)
+});
+document.querySelector('.summary').innerHTML='<span class="pass">'+passed+' passed</span> / <span class="'+(failed?'fail':'pass')+'">'+failed+' failed</span> / '+tests.length+' total';
+</script>
+</body>
+</html>

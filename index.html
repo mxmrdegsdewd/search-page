@@ -20,12 +20,14 @@
     <link rel="apple-touch-startup-image" media="(device-width:375px) and (device-height:667px) and (-webkit-device-pixel-ratio:2)" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='750' height='1334'><rect fill='%23000' width='750' height='1334'/></svg>">
     <link rel="apple-touch-startup-image" media="(device-width:320px) and (device-height:568px) and (-webkit-device-pixel-ratio:2)" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='640' height='1136'><rect fill='%23000' width='640' height='1136'/></svg>">
     <link rel="stylesheet" href="styles.css">
+    <style>html,body{background:#000}</style>
 </head>
 <body>
 <div class="container">
     <div class="tabs" id="tabs"></div>
     <div class="search-area" style="position:relative">
         <div class="suggestions" id="suggestions"></div>
+        <div class="typo-settings" id="typoSettings"></div>
         <div class="search-box" id="searchBox">
             <div class="search-gradient" id="searchGradient"></div>
             <div class="search-input-wrap">
@@ -37,10 +39,7 @@
                     <span class="source-text hidden" id="sourceText"></span>
                 </div>
                 <div class="search-actions">
-                    <div style="position:relative">
-                    <div class="typo-settings" id="typoSettings"></div>
                     <button class="icon-btn" id="typoBtn" aria-label="Типограф"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M19.5 15C19.5 14.7239 19.7239 14.5 20 14.5C20.2761 14.5 20.5 14.7239 20.5 15V27.5H22.7773C23.0535 27.5 23.2773 27.7239 23.2773 28C23.2773 28.2761 23.0535 28.5 22.7773 28.5H17.2227C16.9465 28.5 16.7227 28.2761 16.7227 28C16.7227 27.7239 16.9465 27.5 17.2227 27.5H19.5V15ZM27.5 16.459V14C27.5 13.1716 26.8284 12.5 26 12.5H14C13.1716 12.5 12.5 13.1716 12.5 14V16.459C12.5 16.7351 12.2761 16.959 12 16.959C11.7239 16.959 11.5 16.7351 11.5 16.459V14C11.5 12.6193 12.6193 11.5 14 11.5H26C27.3807 11.5 28.5 12.6193 28.5 14V16.459C28.5 16.7351 28.2761 16.959 28 16.959C27.7239 16.959 27.5 16.7351 27.5 16.459Z" fill="white"/></svg></button>
-                    </div>
                     <button class="icon-btn" id="settingsBtn" aria-label="Настройки"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M17.5 10.4433C19.047 9.55015 20.953 9.55015 22.5 10.4433L27.0264 13.0566C28.5733 13.9498 29.5264 15.6004 29.5264 17.3867V22.6132L29.5156 22.9462C29.4053 24.6028 28.4767 26.1059 27.0264 26.9433L22.5 29.5566L22.2061 29.7138C20.8156 30.3977 19.1844 30.3977 17.7939 29.7138L17.5 29.5566L12.9736 26.9433C11.5233 26.1059 10.5947 24.6028 10.4844 22.9462L10.4736 22.6132V17.3867C10.4736 15.712 11.3111 14.1562 12.6904 13.2324L12.9736 13.0566L17.5 10.4433ZM22 11.3095C20.7624 10.595 19.2376 10.595 18 11.3095L13.4736 13.9228C12.2361 14.6374 11.4736 15.9577 11.4736 17.3867V22.6132C11.4737 24.0422 12.2361 25.3626 13.4736 26.0771L18 28.6904C19.2376 29.4049 20.7624 29.4049 22 28.6904L26.5264 26.0771C27.7639 25.3626 28.5263 24.0422 28.5264 22.6132V17.3867C28.5264 15.9577 27.7639 14.6374 26.5264 13.9228L22 11.3095ZM20 18C21.1046 18 22 18.8954 22 20C22 21.1045 21.1046 22 20 22C18.8954 22 18 21.1045 18 20C18 18.8954 18.8954 18 20 18Z" fill="white"/></svg></button>
                     <button class="icon-btn" id="copyBtn" aria-label="Копировать"><svg class="ico in" id="icoCopy" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M11 16.5C11.2761 16.5 11.5 16.7239 11.5 17V24C11.5 26.4853 13.5147 28.5 16 28.5H23C23.2761 28.5 23.5 28.7239 23.5 29C23.5 29.2761 23.2761 29.5 23 29.5H16C12.9624 29.5 10.5 27.0376 10.5 24V17C10.5 16.7239 10.7239 16.5 11 16.5ZM27 11C28.1046 11 29 11.8954 29 13V23C29 24.0357 28.2128 24.887 27.2041 24.9893L27 25H17L16.7959 24.9893C15.8543 24.8938 15.1062 24.1457 15.0107 23.2041L15 23V13C15 11.8954 15.8954 11 17 11H27ZM17 12C16.4477 12 16 12.4477 16 13V23C16 23.5523 16.4477 24 17 24H27C27.5523 24 28 23.5523 28 23V13C28 12.4477 27.5523 12 27 12H17Z" fill="white"/></svg><svg class="ico out" id="icoCheck" xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M20 9C26.0751 9 31 13.9249 31 20C31 26.0751 26.0751 31 20 31C13.9249 31 9 26.0751 9 20C9 13.9249 13.9249 9 20 9ZM20 10C14.4772 10 10 14.4772 10 20C10 25.5228 14.4772 30 20 30C25.5228 30 30 25.5228 30 20C30 14.4772 25.5228 10 20 10ZM23.1094 17.1875C23.2819 16.9719 23.5969 16.9369 23.8125 17.1094C24.0281 17.2819 24.0631 17.5969 23.8906 17.8125L19.8906 22.8125C19.8018 22.9236 19.6693 22.9912 19.5273 22.999C19.3854 23.0068 19.247 22.954 19.1465 22.8535L16.6465 20.3535C16.4512 20.1583 16.4512 19.8417 16.6465 19.6465C16.8417 19.4512 17.1583 19.4512 17.3535 19.6465L19.458 21.751L23.1094 17.1875Z" fill="white"/></svg></button>
                     <button class="icon-btn" id="micBtn" aria-label="Голосовой ввод"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" fill="none"><path d="M23 30C23.2761 30 23.5 30.2239 23.5 30.5C23.5 30.7761 23.2761 31 23 31H17C16.7239 31 16.5 30.7761 16.5 30.5C16.5 30.2239 16.7239 30 17 30H23ZM28 18C28.2761 18 28.5 18.2239 28.5 18.5C28.5 23.1944 24.6944 27 20 27C15.3056 27 11.5 23.1944 11.5 18.5C11.5 18.2239 11.7239 18 12 18C12.2761 18 12.5 18.2239 12.5 18.5C12.5 22.6421 15.8579 26 20 26C24.1421 26 27.5 22.6421 27.5 18.5C27.5 18.2239 27.7239 18 28 18ZM20 9.5C22.2091 9.5 24 11.2909 24 13.5V18.5C24 20.7091 22.2091 22.5 20 22.5C17.86 22.5 16.1121 20.8194 16.0049 18.7061L16 18.5V13.5C16 11.2909 17.7909 9.5 20 9.5ZM20 10.5C18.3431 10.5 17 11.8431 17 13.5V18.5C17 20.1569 18.3431 21.5 20 21.5C21.6569 21.5 23 20.1569 23 18.5V13.5C23 11.8431 21.6569 10.5 20 10.5Z" fill="white"/></svg></button>
@@ -543,13 +542,18 @@
         pushHistory(t.trim());
         var result=typograf(t);
         pushHistory(result.trim());
-        var issues=window.spellCheck?window.spellCheck(result):[];
-        if(issues.length){
-            renderWithTypos(result,issues);
+        var afterCheck=function(issues){
+            if(issues&&issues.length){
+                renderWithTypos(result,issues);
+            }else{
+                setText(result);copyText(result);showCheckmark();
+            }
             setTimeout(function(){$i.focus()},0)
+        };
+        if(window.spellCheck&&window.spellReady&&window.spellReady()){
+            window.spellCheck(result).then(afterCheck);
         }else{
-            setText(result);copyText(result);showCheckmark();
-            setTimeout(function(){$i.focus()},0)
+            afterCheck([]);
         }
     });
 
@@ -569,7 +573,15 @@
         }
         $typoSettings.innerHTML=html;
     }
-    function showTypoSettings(){renderTypoSettings();$typoSettings.classList.add('visible')}
+    function showTypoSettings(){
+        renderTypoSettings();
+        var btn=document.getElementById('typoBtn');
+        var br=btn.getBoundingClientRect();
+        var sa=document.querySelector('.search-area').getBoundingClientRect();
+        $typoSettings.style.left=(br.left-sa.left+br.width/2)+'px';
+        $typoSettings.style.bottom=(sa.bottom-br.top+8)+'px';
+        $typoSettings.classList.add('visible');
+    }
     function hideTypoSettings(){clearTimeout(typoHoverTimer);$typoSettings.classList.remove('visible')}
     document.getElementById('typoBtn').addEventListener('mouseenter',function(){
         typoHoverTimer=setTimeout(showTypoSettings,1000)

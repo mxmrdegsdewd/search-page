@@ -243,7 +243,7 @@ body {
 .search-input .new-text { animation: voiceIn .3s ease forwards; }
 /* Подчёркнутая опечатка (text-decoration не перебивается правилом color !important) */
 .search-input .typo {
-    text-decoration: underline wavy var(--typo);
+    text-decoration: underline dotted var(--typo);
     text-decoration-skip-ink: none;
     text-underline-offset: 3px;
     cursor: pointer;
@@ -591,10 +591,8 @@ body {
 /* ── Панель настроек типографа (hover на кнопке Т) ─────────────────── */
 .typo-settings {
     position: absolute;
-    bottom: calc(100% + 8px);
-    left: 50%;
-    transform: translateX(-50%);
     width: 240px;
+    transform: translateX(-50%);
     background: var(--surface-1);
     border: 1px solid var(--line);
     border-radius: var(--r-md);

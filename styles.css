@@ -88,7 +88,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--pad);
+    padding: calc(var(--pad) + env(safe-area-inset-top)) calc(var(--pad) + env(safe-area-inset-right)) calc(var(--pad) + env(safe-area-inset-bottom)) calc(var(--pad) + env(safe-area-inset-left));
     -webkit-font-smoothing: antialiased;
 }
 
@@ -109,8 +109,6 @@ body {
 .search-area { position: relative; order: 1; }
 
 @media (max-width: 600px) {
-    body { align-items: flex-end !important; }
-    .container { flex-direction: column-reverse !important; }
     .suggestions { top: auto !important; bottom: calc(100% + var(--gap)) !important; }
     .suggestions__list { flex-direction: column-reverse !important; }
 }
@@ -244,8 +242,9 @@ body {
 /* Подчёркнутая опечатка (text-decoration не перебивается правилом color !important) */
 .search-input .typo {
     text-decoration: underline dotted var(--typo);
+    text-decoration-thickness: 2px;
     text-decoration-skip-ink: none;
-    text-underline-offset: 3px;
+    text-underline-offset: 4px;
     cursor: pointer;
 }
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="color-scheme" content="dark">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=overlays-content">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, shrink-to-fit=no, interactive-widget=overlays-content">
     <title>Поиск</title>
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -639,6 +639,21 @@
     setPlaceholder('Loading...');
     $i.focus();
     document.addEventListener('visibilitychange',function(){if(!document.hidden&&!micOn)setPlaceholder()});
+
+    /* Держим контейнер по центру ВИДИМОЙ области (над клавиатурой) — iOS Safari/Firefox */
+    (function(){
+        var vv=window.visualViewport;if(!vv)return;
+        var c=document.querySelector('.container');if(!c)return;
+        var raf=null;
+        function update(){
+            raf=null;
+            var shift=vv.offsetTop+vv.height/2-window.innerHeight/2;
+            c.style.transform=Math.abs(shift)<1?'':'translateY('+shift+'px)';
+        }
+        function onVV(){if(raf)return;raf=requestAnimationFrame(update)}
+        vv.addEventListener('resize',onVV);
+        vv.addEventListener('scroll',onVV);
+    })();
 })();
 </script>
 </body>
